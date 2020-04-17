@@ -4,6 +4,7 @@
 #
 # Author: S.H.A. Verschuren
 # Date:   17-4-2020
+# TODO: Implement proper data storage
 
 import argparse
 import numpy as np
