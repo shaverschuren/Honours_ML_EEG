@@ -105,6 +105,7 @@ def write_data(frame_type=''):
         # print("RAW: ", raw_data.shape)
         if raw_record_nr % 2000 == 0:
             raw_data.to_csv(raw_path, mode='a', index=False, header=False)
+            raw_data = pd.DataFrame(columns=raw_columns)
             print("Saved RAW data to", raw_path)
 
     elif frame_type == 'fft':
@@ -131,6 +132,7 @@ def write_data(frame_type=''):
         # print("FFT: ", fft_data.shape)
         if fft_record_nr % 100 == 0:
             fft_data.to_csv(fft_path, mode='a', index=False, header=False)
+            fft_data = pd.DataFrame(columns=fft_columns)
             print("Saved FFT data to", fft_path)
     else:
         raise ValueError('Wrong frame type ...')
