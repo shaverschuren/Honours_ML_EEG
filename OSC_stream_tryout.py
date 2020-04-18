@@ -4,7 +4,7 @@
 #
 # Author: S.H.A. Verschuren
 # Date:   17-4-2020
-# TODO: Fix timestamping ...
+# TODO: Implement Tkinter thread
 
 import argparse
 import numpy as np
@@ -13,6 +13,8 @@ import csv
 import time
 import datetime
 import os
+import tkinter
+import threading
 from pythonosc import dispatcher, osc_server
 
 
@@ -58,6 +60,28 @@ def theta_handler(unused_addr, args, ch1, ch2, ch3, ch4):
 #     # print("Jaw clench? : ", ch1)
 
 
+def osc_stream(ip_address="0.0.0.0",port=5000):
+    print('======== INIT OSC STREAM ========')
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--ip", default=ip_address)
+    parser.add_argument("--port", default=port)
+    args = parser.parse_args()
+    global dispatcher
+    dispatcher = dispatcher.Dispatcher()
+    dispatcher.map("/debug", print)
+    dispatcher.map("/muse/eeg", eeg_handler, "EEG")
+    # dispatcher.map("/muse/elements/jaw_clench", jaw_handler, "JAW")
+    dispatcher.map("/muse/elements/alpha_absolute", alpha_handler, "Alpha")
+    dispatcher.map("/muse/elements/beta_absolute", beta_handler, "Beta")
+    dispatcher.map("/muse/elements/gamma_absolute", gamma_handler, "Gamma")
+    dispatcher.map("/muse/elements/delta_absolute", delta_handler, "Delta")
+    dispatcher.map("/muse/elements/theta_absolute", theta_handler, "Theta")
+
+    server = osc_server.ThreadingOSCUDPServer((args.ip, args.port), dispatcher)
+    print('\nListening at ', ip_address, ' {', port, '}')
+    server.serve_forever()
+
+
 def update_data(data_type="", values=()):
 
     if data_type == "EEG":
@@ -91,7 +115,7 @@ def write_data(frame_type=''):
 
     global raw_record_nr
     global fft_record_nr
-
+    # TODO: Fix time-stamping... (datetime.datetime.now() ?)
     append_row = [time.perf_counter()]
 
     if frame_type == 'raw':
@@ -138,55 +162,44 @@ def write_data(frame_type=''):
         raise ValueError('Wrong frame type ...')
 
 
-raw_columns = ["TimeStamp", "EEG_0", "EEG_1", "EEG_2", "EEG_3"]
+def gui_func():
+    print("hi!")
 
-fft_columns = ["TimeStamp", "alpha_0", "alpha_1", "alpha_2", "alpha_3", "beta_0",
-           "beta_1", "beta_2", "beta_3", "gamma_0", "gamma_1", "gamma_2", "gamma_3", "delta_0", "delta_1", "delta_2",
-           "delta_3", "theta_0", "theta_1", "theta_2", "theta_3"]
-
-raw_data = pd.DataFrame(columns=raw_columns)
-fft_data = pd.DataFrame(columns=fft_columns)
-
-eeg_data = (0,0,0,0)
-alpha_data = (0,0,0,0)
-beta_data = (0,0,0,0)
-gamma_data = (0,0,0,0)
-delta_data = (0,0,0,0)
-theta_data = (0,0,0,0)
-
-raw_record_nr = 0
-fft_record_nr = 0
-
-# csv init
-logs_date = str(datetime.datetime.now()).replace(':', '-')
-log_folder = r'data\logs_' + logs_date[:10] + '_' + logs_date[11:19]
-raw_path = log_folder + '\\raw.csv'
-fft_path = log_folder + '\\fft.csv'
-
-os.mkdir(log_folder)
-
-raw_data.to_csv(raw_path, index=False)
-fft_data.to_csv(fft_path, index=False)
 
 if __name__ == '__main__':
-    print('======== INIT OSC STREAM ========')
-    ip_address = "0.0.0.0"
-    Port = 5000
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--ip", default=ip_address)
-    parser.add_argument("--port", default=Port)
-    args = parser.parse_args()
+    raw_columns = ["TimeStamp", "EEG_0", "EEG_1", "EEG_2", "EEG_3"]
 
-    dispatcher = dispatcher.Dispatcher()
-    dispatcher.map("/debug", print)
-    dispatcher.map("/muse/eeg", eeg_handler, "EEG")
-    # dispatcher.map("/muse/elements/jaw_clench", jaw_handler, "JAW")
-    dispatcher.map("/muse/elements/alpha_absolute", alpha_handler, "Alpha")
-    dispatcher.map("/muse/elements/beta_absolute", beta_handler, "Beta")
-    dispatcher.map("/muse/elements/gamma_absolute", gamma_handler, "Gamma")
-    dispatcher.map("/muse/elements/delta_absolute", delta_handler, "Delta")
-    dispatcher.map("/muse/elements/theta_absolute", theta_handler, "Theta")
+    fft_columns = ["TimeStamp", "alpha_0", "alpha_1", "alpha_2", "alpha_3", "beta_0",
+               "beta_1", "beta_2", "beta_3", "gamma_0", "gamma_1", "gamma_2", "gamma_3", "delta_0", "delta_1", "delta_2",
+               "delta_3", "theta_0", "theta_1", "theta_2", "theta_3"]
 
-    server = osc_server.ThreadingOSCUDPServer((args.ip, args.port), dispatcher)
-    print('\nListening at ', ip_address, ' {', Port, '}')
-    server.serve_forever()
+    raw_data = pd.DataFrame(columns=raw_columns)
+    fft_data = pd.DataFrame(columns=fft_columns)
+
+    eeg_data = (0,0,0,0)
+    alpha_data = (0,0,0,0)
+    beta_data = (0,0,0,0)
+    gamma_data = (0,0,0,0)
+    delta_data = (0,0,0,0)
+    theta_data = (0,0,0,0)
+
+    raw_record_nr = 0
+    fft_record_nr = 0
+
+    # csv init
+    logs_date = str(datetime.datetime.now()).replace(':', '-')
+    log_folder = r'data\logs_' + logs_date[:10] + '_' + logs_date[11:19]
+    raw_path = log_folder + '\\raw.csv'
+    fft_path = log_folder + '\\fft.csv'
+
+    os.mkdir(log_folder)
+
+    raw_data.to_csv(raw_path, index=False)
+    fft_data.to_csv(fft_path, index=False)
+
+    osc_thread = threading.Thread(target=osc_stream)  # daemon = True / False
+    gui_thread = threading.Thread(target=gui_func)
+
+    osc_thread.start()
+    time.sleep(1)
+    gui_thread.start()
