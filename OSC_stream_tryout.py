@@ -4,13 +4,15 @@
 #
 # Author: S.H.A. Verschuren
 # Date:   17-4-2020
-# TODO: Implement csv data storage
+# TODO: Fix timestamping ...
 
 import argparse
 import numpy as np
 import pandas as pd
-import datetime
+import csv
 import time
+import datetime
+import os
 from pythonosc import dispatcher, osc_server
 
 
@@ -87,6 +89,9 @@ def write_data(frame_type=''):
     global raw_data
     global fft_data
 
+    global raw_record_nr
+    global fft_record_nr
+
     append_row = [time.perf_counter()]
 
     if frame_type == 'raw':
@@ -96,7 +101,11 @@ def write_data(frame_type=''):
 
         append_df = pd.DataFrame([append_row], columns=raw_columns)
         raw_data = pd.concat([raw_data, append_df], ignore_index=True)
-        print("RAW: ", raw_data.shape)
+        raw_record_nr += 1
+        # print("RAW: ", raw_data.shape)
+        if raw_record_nr % 2000 == 0:
+            raw_data.to_csv(raw_path, mode='a', index=False, header=False)
+            print("Saved RAW data to", raw_path)
 
     elif frame_type == 'fft':
         for data_type in ["alpha", "beta", "gamma", "delta", "theta"]:
@@ -118,7 +127,11 @@ def write_data(frame_type=''):
 
         append_df = pd.DataFrame([append_row], columns=fft_columns)
         fft_data = pd.concat([fft_data, append_df], ignore_index=True)
-        print("FFT: ", fft_data.shape)
+        fft_record_nr += 1
+        # print("FFT: ", fft_data.shape)
+        if fft_record_nr % 100 == 0:
+            fft_data.to_csv(fft_path, mode='a', index=False, header=False)
+            print("Saved FFT data to", fft_path)
     else:
         raise ValueError('Wrong frame type ...')
 
@@ -139,6 +152,19 @@ gamma_data = (0,0,0,0)
 delta_data = (0,0,0,0)
 theta_data = (0,0,0,0)
 
+raw_record_nr = 0
+fft_record_nr = 0
+
+# csv init
+logs_date = str(datetime.datetime.now()).replace(':', '-')
+log_folder = r'data\logs_' + logs_date[:10] + '_' + logs_date[11:19]
+raw_path = log_folder + '\\raw.csv'
+fft_path = log_folder + '\\fft.csv'
+
+os.mkdir(log_folder)
+
+raw_data.to_csv(raw_path, index=False)
+fft_data.to_csv(fft_path, index=False)
 
 if __name__ == '__main__':
     print('======== INIT OSC STREAM ========')
