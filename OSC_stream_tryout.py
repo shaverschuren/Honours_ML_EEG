@@ -4,7 +4,7 @@
 #
 # Author: S.H.A. Verschuren
 # Date:   17-4-2020
-# TODO: Implement Tkinter thread
+#
 
 import argparse
 import numpy as np
@@ -13,7 +13,12 @@ import csv
 import time
 import datetime
 import os
-import tkinter
+import tkinter as tk
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from matplotlib import style
+import matplotlib
+matplotlib.use("TkAgg")
 import threading
 from pythonosc import dispatcher, osc_server
 
@@ -110,6 +115,8 @@ def update_data(data_type="", values=()):
 
 
 def write_data(frame_type=''):
+    global plot_raw_data
+
     global raw_data
     global fft_data
 
@@ -125,7 +132,12 @@ def write_data(frame_type=''):
 
         append_df = pd.DataFrame([append_row], columns=raw_columns)
         raw_data = pd.concat([raw_data, append_df], ignore_index=True)
+
+        plot_raw_data = pd.concat([plot_raw_data, append_df], ignore_index=True)
+        if len(plot_raw_data) > 1500:
+            plot_raw_data = plot_raw_data[-1000:]
         raw_record_nr += 1
+
         # print("RAW: ", raw_data.shape)
         if raw_record_nr % 2000 == 0:
             raw_data.to_csv(raw_path, mode='a', index=False, header=False)
@@ -162,8 +174,43 @@ def write_data(frame_type=''):
         raise ValueError('Wrong frame type ...')
 
 
-def gui_func():
-    print("hi!")
+def animate(i):
+
+    plot_data = pd.concat([null_df, plot_raw_data], ignore_index=True)[-1000:]
+    xs = range(1000)
+    ys1 = plot_data['EEG_0']
+    ys2 = plot_data['EEG_1']
+    ys3 = plot_data['EEG_2']
+    ys4 = plot_data['EEG_3']
+
+    # ys1_avg = (ys1[-990] + ys1[-10]) / 2
+    # ys2_avg = (ys2[-990] + ys2[-10]) / 2
+
+    ax1.clear()
+    ax1.set_xlim(0, 1000)
+    #ax1.set_ylim(ys1_avg-100, ys2_avg+100)
+    ax1.patch.set_facecolor('#000000')
+    ax1.plot(xs, ys1, 'b-', linewidth=1, alpha=0.5)
+
+    ax2.clear()
+    ax2.set_xlim(0, 1000)
+    #ax2.set_ylim(ys2_avg-100, ys2_avg+100)
+    ax2.patch.set_facecolor('#000000')
+    ax2.plot(xs, ys2, 'r-', linewidth=1, alpha=0.5)
+
+    ax3.clear()
+    ax3.set_xlim(0, 1000)
+    #ax2.set_ylim(ys2_avg-100, ys2_avg+100)
+    ax3.patch.set_facecolor('#000000')
+    ax3.plot(xs, ys3, 'c-', linewidth=1, alpha=0.5)
+
+    ax4.clear()
+    ax4.set_xlim(0, 1000)
+    #ax2.set_ylim(ys2_avg-100, ys2_avg+100)
+    ax4.patch.set_facecolor('#000000')
+    ax4.plot(xs, ys4, 'g-', linewidth=1, alpha=0.5)
+
+    return [ax1, ax2, ax3, ax4]
 
 
 if __name__ == '__main__':
@@ -175,6 +222,9 @@ if __name__ == '__main__':
 
     raw_data = pd.DataFrame(columns=raw_columns)
     fft_data = pd.DataFrame(columns=fft_columns)
+
+    plot_raw_data = raw_data
+    null_df = pd.DataFrame([[0,0,0,0,0]]*1000, columns=raw_columns)
 
     eeg_data = (0,0,0,0)
     alpha_data = (0,0,0,0)
@@ -198,8 +248,18 @@ if __name__ == '__main__':
     fft_data.to_csv(fft_path, index=False)
 
     osc_thread = threading.Thread(target=osc_stream)  # daemon = True / False
-    gui_thread = threading.Thread(target=gui_func)
+    # gui_thread = threading.Thread(target=plot_data_stream)
 
     osc_thread.start()
     time.sleep(1)
-    gui_thread.start()
+
+    fig = plt.figure()
+    fig.patch.set_facecolor('#000000')
+    ax1 = fig.add_subplot(4, 1, 1)
+    ax2 = fig.add_subplot(4, 1, 2)
+    ax3 = fig.add_subplot(4, 1, 3)
+    ax4 = fig.add_subplot(4, 1, 4)
+
+    # gui_thread.start()
+    ani = animation.FuncAnimation(fig, animate, interval=500, blit=True)
+    plt.show()
