@@ -19,6 +19,7 @@ import matplotlib.animation as animation
 from matplotlib import style
 import matplotlib
 matplotlib.use("TkAgg")
+import pygame_tryout
 import threading
 from pythonosc import dispatcher, osc_server
 
@@ -123,7 +124,7 @@ def write_data(frame_type=''):
     global raw_record_nr
     global fft_record_nr
     # TODO: Fix time-stamping... (datetime.datetime.now() ?)
-    append_row = [time.perf_counter()]
+    append_row = [datetime.datetime.now()]
 
     if frame_type == 'raw':
         data_point = eeg_data
@@ -175,9 +176,9 @@ def write_data(frame_type=''):
 
 
 def animate(i):
-
-    plot_data = pd.concat([null_df, plot_raw_data], ignore_index=True)[-1000:]
-    xs = range(1000)
+    start = datetime.datetime.now()
+    plot_data = pd.concat([null_df, plot_raw_data], ignore_index=True)[-500:]
+    xs = range(500)
     ys1 = plot_data['EEG_0']
     ys2 = plot_data['EEG_1']
     ys3 = plot_data['EEG_2']
@@ -187,29 +188,30 @@ def animate(i):
     # ys2_avg = (ys2[-990] + ys2[-10]) / 2
 
     ax1.clear()
-    ax1.set_xlim(0, 1000)
+    ax1.set_xlim(0, 500)
     #ax1.set_ylim(ys1_avg-100, ys2_avg+100)
     ax1.patch.set_facecolor('#000000')
     ax1.plot(xs, ys1, 'b-', linewidth=1, alpha=0.5)
 
     ax2.clear()
-    ax2.set_xlim(0, 1000)
+    ax2.set_xlim(0, 500)
     #ax2.set_ylim(ys2_avg-100, ys2_avg+100)
     ax2.patch.set_facecolor('#000000')
     ax2.plot(xs, ys2, 'r-', linewidth=1, alpha=0.5)
 
     ax3.clear()
-    ax3.set_xlim(0, 1000)
+    ax3.set_xlim(0, 500)
     #ax2.set_ylim(ys2_avg-100, ys2_avg+100)
     ax3.patch.set_facecolor('#000000')
     ax3.plot(xs, ys3, 'c-', linewidth=1, alpha=0.5)
 
     ax4.clear()
-    ax4.set_xlim(0, 1000)
+    ax4.set_xlim(0, 500)
     #ax2.set_ylim(ys2_avg-100, ys2_avg+100)
     ax4.patch.set_facecolor('#000000')
     ax4.plot(xs, ys4, 'g-', linewidth=1, alpha=0.5)
-
+    stop = datetime.datetime.now()
+    print(stop-start)
     return [ax1, ax2, ax3, ax4]
 
 
@@ -248,7 +250,7 @@ if __name__ == '__main__':
     fft_data.to_csv(fft_path, index=False)
 
     osc_thread = threading.Thread(target=osc_stream)  # daemon = True / False
-    # gui_thread = threading.Thread(target=plot_data_stream)
+    gui_thread = threading.Thread(target=pygame_tryout.main_gui)
 
     osc_thread.start()
     time.sleep(1)
@@ -260,6 +262,6 @@ if __name__ == '__main__':
     ax3 = fig.add_subplot(4, 1, 3)
     ax4 = fig.add_subplot(4, 1, 4)
 
-    # gui_thread.start()
-    ani = animation.FuncAnimation(fig, animate, interval=500, blit=True)
-    plt.show()
+    gui_thread.start()
+    # ani = animation.FuncAnimation(fig, animate, interval=50, blit=True)  # Don't use during actual data gathering !
+    # plt.show()
