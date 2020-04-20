@@ -1,3 +1,9 @@
+# ToDo: Implement counter
+# ToDo: Implement tracking (to csv)
+# ToDo: Make easier / harder levels
+# ToDo: Fix border
+# ToDo: evt. Implement distractions etc.
+
 import pygame
 import random
 import itertools
@@ -29,7 +35,6 @@ def btn1_press():
         selected_items.append(1)
     else:
         selected_items.remove(1)
-
 
 
 def btn2_press():
@@ -87,10 +92,49 @@ def change_selection_visualisation():
     display_cards()
 
     for item in selected_items:
-        s = pygame.Surface((400, 400))
-        s.set_alpha(128)
-        s.fill((0, 50, 255))
-        screen.blit(s, button_ll_coords[item-1])
+        pygame.draw.rect(screen, (255, 0, 0), (button_ll_coords[item-1][0]+3, button_ll_coords[item-1][1]+3, 394, 394), 6)
+        # s = pygame.Surface((400, 400))
+        # s.set_alpha(128)
+        # s.fill((0, 50, 255))
+        # screen.blit(s, button_ll_coords[item-1])
+
+
+def check_answer():
+    # selected_items, cards, attribute_list
+    selected_cards = []
+    selected_attributes = []
+    shape_list = []
+    color_list = []
+    fill_list = []
+    for selected_item in selected_items:
+        selected_cards.append(cards[selected_item-1])
+
+    for selected_card in selected_cards:
+        selected_attributes.append(attribute_list[selected_card])
+
+    for i in range(3):
+        shape_list.append(selected_attributes[i][0])
+        color_list.append(selected_attributes[i][1])
+        fill_list.append(selected_attributes[i][2])
+
+    att_set_list = []
+    for att_list in [shape_list, color_list, fill_list]:
+        all_same = all(elem == att_list[0] for elem in att_list)
+        all_different = len(att_list) == len(set(att_list))
+
+        if all_same == True or all_different == True:
+            att_set = True
+        else:
+            att_set = False
+
+        att_set_list.append(att_set)
+
+    if all(elem == True for elem in att_set_list):
+        correct_answer = True
+    else:
+        correct_answer = False
+
+    return correct_answer
 
 
 def check_for_set(cards):
@@ -165,6 +209,7 @@ def main_gui():
     global attribute_list
     global selected_items
     global cards
+    global true_answer
 
     red = (200,0,0)
     green = (0,150,50)
@@ -231,7 +276,8 @@ def main_gui():
             change_selection_visualisation()
 
         if len(selected_items) == 3:
-            print(selected_items)
+            true_answer = check_answer()
+            print(true_answer)
             switch_f()
 
         old_len_selected_items = len(selected_items)
