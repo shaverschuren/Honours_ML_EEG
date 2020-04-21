@@ -7,6 +7,8 @@
 import pygame
 import random
 import itertools
+import pandas as pd
+import datetime
 
 
 class Button:
@@ -92,11 +94,13 @@ def change_selection_visualisation():
     display_cards()
 
     for item in selected_items:
-        pygame.draw.rect(screen, (255, 0, 0), (button_ll_coords[item-1][0]+3, button_ll_coords[item-1][1]+3, 394, 394), 6)
-        # s = pygame.Surface((400, 400))
-        # s.set_alpha(128)
-        # s.fill((0, 50, 255))
-        # screen.blit(s, button_ll_coords[item-1])
+        # Draw frame
+        pygame.draw.rect(screen, (255, 0, 0), (button_ll_coords[item-1][0]+2, button_ll_coords[item-1][1]+2, 395, 395), 6)
+        # Fix ugly corners ...
+        pygame.draw.rect(screen, (255, 0, 0), (button_ll_coords[item-1][0], button_ll_coords[item-1][1], 6, 6))
+        pygame.draw.rect(screen, (255, 0, 0), (button_ll_coords[item-1][0]+394, button_ll_coords[item-1][1], 6, 6))
+        pygame.draw.rect(screen, (255, 0, 0), (button_ll_coords[item-1][0]+394, button_ll_coords[item-1][1]+394, 6, 6))
+        pygame.draw.rect(screen, (255, 0, 0), (button_ll_coords[item-1][0], button_ll_coords[item-1][1]+394, 6, 6))
 
 
 def check_answer():
@@ -135,6 +139,19 @@ def check_answer():
         correct_answer = False
 
     return correct_answer
+
+
+def store_answer(true_answer):
+    global game_data
+
+    append_row = [datetime.datetime.now(), int(true_answer)]
+
+    append_df = pd.DataFrame([append_row], columns=["TimeStamp", "correct"])
+    game_data = pd.concat([game_data, append_df], ignore_index=True)
+
+    game_data.loc[[len(game_data)-1]].to_csv(logs_path, mode='a', index=False, header=False)
+
+    print(game_data.loc[[len(game_data)-1]])
 
 
 def check_for_set(cards):
@@ -210,6 +227,8 @@ def main_gui():
     global selected_items
     global cards
     global true_answer
+    global logs_path
+    global game_data
 
     red = (200,0,0)
     green = (0,150,50)
@@ -229,7 +248,7 @@ def main_gui():
     symbol_list = []
     attribute_list = []
 
-    for shape in [1 ,2, 3]:
+    for shape in [1, 2, 3]:
         for color in [1, 2, 3]:
             for fill in [1, 2, 3]:
                 attribute_list.append((shape, color, fill))
@@ -255,6 +274,14 @@ def main_gui():
     selected_items = []
     old_len_selected_items = 0
 
+    import OSC_stream_tryout
+
+    logs_path = OSC_stream_tryout.log_folder + '\\game.csv'
+    print(logs_path)
+
+    game_data = pd.DataFrame(columns=["TimeStamp", "correct"])
+    game_data.to_csv(logs_path, index=False)
+
     switch_f()
 
 
@@ -277,7 +304,7 @@ def main_gui():
 
         if len(selected_items) == 3:
             true_answer = check_answer()
-            print(true_answer)
+            store_answer(true_answer)
             switch_f()
 
         old_len_selected_items = len(selected_items)
