@@ -1,8 +1,11 @@
-# ToDo: Fix log storage
+# game_gui.py
+#
+# This script runs the entire game gui.
+# It also stores the log files in the designated log folder.
+#
+# Author:   S.H.A. Verschuren
+# Date:     23-04-2020
 # ToDo: Implement counter
-# ToDo: Implement tracking (to csv)
-# ToDo: Make easier / harder levels
-# ToDo: Fix border
 # ToDo: evt. Implement distractions etc.
 
 import pygame
@@ -331,4 +334,4 @@ def main_gui(log_folder="data\\test_logs", selected_level=1):
 
 
 if __name__ == "__main__":
-    main_gui(selected_level=1)
+    main_gui(selected_level=3)

@@ -3,6 +3,8 @@
 # This script is the main protocol for taking measurements, and runs through all necessary functions.
 # It uses several threads to keep the program running.
 #
+# Author:   S.H.A. Verschuren
+# Date:     23-04-2020
 
 import os
 import tkinter

@@ -2,9 +2,8 @@
 #
 # This code is a tryout for the setup of an OSC stream with the muse headset via mindMonitor.
 #
-# Author: S.H.A. Verschuren
-# Date:   17-4-2020
-#
+# Author:   S.H.A. Verschuren
+# Date:     23-04-2020
 
 import argparse
 import pandas as pd
