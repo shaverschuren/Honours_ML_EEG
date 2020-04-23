@@ -240,7 +240,7 @@ def display_cards():
     screen.blit(symbol_list[cards[5]], [1100, 550])
 
 
-def main_gui(log_folder="data\\test_logs", selected_level=1):
+def main_gui(log_folder="data\\test_logs", selected_level=1, tryout_opt=False, num_tryouts=5):
     global screen
     global symbol_list
     global attribute_list
@@ -286,13 +286,6 @@ def main_gui(log_folder="data\\test_logs", selected_level=1):
     btn5 = Button(rect=(600, 550, 400, 400), command=btn5_press)
     btn6 = Button(rect=(1100, 550, 400, 400), command=btn6_press)
 
-    # pygame.draw.rect(screen, (0,0,0), (100, 50, 400, 400), 1)
-    # pygame.draw.rect(screen, (0,0,0), (600, 50, 400, 400), 1)
-    # pygame.draw.rect(screen, (0,0,0), (1100, 50, 400, 400), 1)
-    # pygame.draw.rect(screen, (0,0,0), (100, 550, 400, 400), 1)
-    # pygame.draw.rect(screen, (0,0,0), (600, 550, 400, 400), 1)
-    # pygame.draw.rect(screen, (0,0,0), (1100, 550, 400, 400), 1)
-
     cards = []
     selected_items = []
     old_len_selected_items = 0
@@ -303,6 +296,13 @@ def main_gui(log_folder="data\\test_logs", selected_level=1):
     game_data.to_csv(logs_path, index=False)
 
     switch_f()
+
+    if tryout_opt:
+        font = pygame.font.Font('freesansbold.ttf', 20)
+        text1 = font.render('Dit is een uitprobeer-level', True, red, blue)
+        text2 = font.render('Level: ' + str(selected_level) + '/3', True, red, blue)
+        screen.blit(text1, [1600, 50])
+        screen.blit(text2, [1600, 80])
 
     done = False
     switch = False
@@ -328,10 +328,14 @@ def main_gui(log_folder="data\\test_logs", selected_level=1):
 
         old_len_selected_items = len(selected_items)
 
+        if tryout_opt:
+            if len(game_data) >= num_tryouts:
+                done = True
+
         # draw etc...
         pygame.display.update()
         time.sleep(0.1)  # Stops game from taking up too much computing power needed for eeg stream
 
 
 if __name__ == "__main__":
-    main_gui(selected_level=3)
+    main_gui(selected_level=1, tryout_opt=True)
