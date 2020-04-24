@@ -338,4 +338,4 @@ def main_gui(log_folder="data\\test_logs", selected_level=1, tryout_opt=False, n
 
 
 if __name__ == "__main__":
-    main_gui(selected_level=1, tryout_opt=True)
+    main_gui(selected_level=3, tryout_opt=False)

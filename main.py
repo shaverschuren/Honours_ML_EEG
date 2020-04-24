@@ -7,8 +7,6 @@
 # Date:     23-04-2020
 
 import os
-import tkinter
-import pandas
 import osc_stream
 import game_gui
 import selection_gui
