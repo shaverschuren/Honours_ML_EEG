@@ -247,9 +247,18 @@ def update_score():
     global correct_answer
     global current_score
     if correct_answer:
-        color = (0, 150, 50)
+        if current_score < 150:
+            color = (0, 150, 50)
+            correct_sound.play()
+        else:
+            if random.randint(1, 10) > 8:
+                color = (200, 0, 0)
+                wrong_sound.play()
+            else:
+                color = (0, 150, 50)
+                correct_sound.play()
         current_score+=1
-        correct_sound.play()
+
     else:
         color = (200, 0, 0)
         wrong_sound.play()
