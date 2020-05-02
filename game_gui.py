@@ -109,6 +109,9 @@ def change_selection_visualisation():
 
 
 def check_answer():
+
+    global correct_answer
+
     # selected_items, cards, attribute_list
     selected_cards = []
     selected_attributes = []
@@ -156,7 +159,7 @@ def store_answer(true_answer):
 
     game_data.loc[[len(game_data)-1]].to_csv(logs_path, mode='a', index=False, header=False)
 
-    print(game_data.loc[[len(game_data)-1]])
+    # print(game_data.loc[[len(game_data)-1]])
 
 
 def check_for_set(cards):
@@ -240,6 +243,22 @@ def display_cards():
     screen.blit(symbol_list[cards[5]], [1100, 550])
 
 
+def update_score():
+    global correct_answer
+    global current_score
+    if correct_answer:
+        color = (0, 150, 50)
+        current_score+=1
+    else:
+        color = (200, 0, 0)
+
+    pygame.draw.rect(screen, color, (1600, 50, 250, 100))
+
+    font = pygame.font.Font('freesansbold.ttf', 20)
+    score_text = font.render('SCORE: ' + str(current_score), True, (255,255,255), color)
+    screen.blit(score_text, [1620, 60])
+
+
 def main_gui(log_folder="data\\test_logs", selected_level=1, tryout_opt=False, num_tryouts=5):
     global screen
     global symbol_list
@@ -250,6 +269,7 @@ def main_gui(log_folder="data\\test_logs", selected_level=1, tryout_opt=False, n
     global logs_path
     global game_data
     global difficulty_setting
+    global current_score
 
     difficulty_setting = selected_level  # may be either 1, 2 or 3
 
@@ -290,6 +310,8 @@ def main_gui(log_folder="data\\test_logs", selected_level=1, tryout_opt=False, n
     selected_items = []
     old_len_selected_items = 0
 
+    current_score = 0
+
     logs_path = log_folder + '\\game.csv'
 
     game_data = pd.DataFrame(columns=["TimeStamp", "correct"])
@@ -325,6 +347,8 @@ def main_gui(log_folder="data\\test_logs", selected_level=1, tryout_opt=False, n
             true_answer = check_answer()
             store_answer(true_answer)
             switch_f()
+            if not tryout_opt:
+                update_score()
 
         old_len_selected_items = len(selected_items)
 
