@@ -249,8 +249,10 @@ def update_score():
     if correct_answer:
         color = (0, 150, 50)
         current_score+=1
+        correct_sound.play()
     else:
         color = (200, 0, 0)
+        wrong_sound.play()
 
     pygame.draw.rect(screen, color, (1600, 50, 250, 100))
 
@@ -270,6 +272,7 @@ def main_gui(log_folder="data\\test_logs", selected_level=1, tryout_opt=False, n
     global game_data
     global difficulty_setting
     global current_score
+    global correct_sound, wrong_sound
 
     difficulty_setting = selected_level  # may be either 1, 2 or 3
 
@@ -311,6 +314,9 @@ def main_gui(log_folder="data\\test_logs", selected_level=1, tryout_opt=False, n
     old_len_selected_items = 0
 
     current_score = 0
+
+    correct_sound = pygame.mixer.Sound('sounds\\correct.wav')
+    wrong_sound = pygame.mixer.Sound('sounds\\wrong.wav')
 
     logs_path = log_folder + '\\game.csv'
 
@@ -362,4 +368,4 @@ def main_gui(log_folder="data\\test_logs", selected_level=1, tryout_opt=False, n
 
 
 if __name__ == "__main__":
-    main_gui(selected_level=3, tryout_opt=False)
+    main_gui(selected_level=1, tryout_opt=False)
