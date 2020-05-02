@@ -13,6 +13,7 @@ import selection_gui
 import time
 import datetime
 import threading
+import pandas
 
 
 def generate_log_folder():
@@ -24,10 +25,10 @@ def generate_log_folder():
     return log_folder
 
 
-if __name__ == "__main__":
+def main():
 
     # ### Define several user options ###
-    level_tryout = True  # Do you want to try a couple of sets from each level first?
+    level_tryout = False  # Do you want to try a couple of sets from each level first?
     # ###################################
 
     # generate log folder based on current time
@@ -36,14 +37,51 @@ if __name__ == "__main__":
     # level tryout module ...
     if level_tryout:
         for level in [1, 2, 3]:
-            game_gui.main_gui(selected_level=level, tryout_opt=True, num_tryouts=(10-2*level))
-            time.sleep(1.5)
+            game_gui.main_gui(selected_level=level, tryout_opt=True, num_tryouts=(9-2*level))
+            time.sleep(1)
 
     # GUI for level selection ...
     level_selection = selection_gui.main()
 
-    # eeg_thread = threading.Thread(target=osc_stream.init_osc_stream, args=(log_folder, False))
-    game_thread = threading.Thread(target=game_gui.main_gui, args=(log_folder, 1, True))
+    # # Check EEG signal ...
+    # eeg_check_thread = threading.Thread(target=osc_stream.init_osc_stream, args=("data\\test_logs", True))
+    # eeg_check_thread.start()
+    #
+    # while eeg_check_thread.is_alive():
+    #     time.sleep(2)
 
-    osc_stream.init_osc_stream(log_folder, False)
+    # osc_stream.stop_server()
+
+    # eeg_thread = threading.Thread(target=osc_stream.init_osc_stream, args=(log_folder, False))
+    game_thread = threading.Thread(target=game_gui.main_gui, args=(log_folder, int(level_selection), False))
     game_thread.start()
+
+    osc_stream.init_osc_stream(log_folder=log_folder, animate_eeg=False)
+
+    # Wait until game is closed
+    while game_thread.is_alive():
+        time.sleep(5)
+
+    print("\nGame thread terminated..\n")
+
+    osc_stream.store_results()
+
+    print("\n======== Experiment completed ========")
+
+    fft_path = log_folder + "\\fft.csv"
+    raw_path = log_folder + "\\raw.csv"
+    game_path = log_folder + "\\game.csv"
+
+    df_fft = pandas.read_csv(fft_path)
+    df_raw = pandas.read_csv(raw_path)
+    df_game = pandas.read_csv(game_path)
+
+    print("FFT:  ", len(df_fft))
+    print("RAW:  ", len(df_raw))
+    print("GAME: ", len(df_game))
+
+    os._exit(0)
+
+
+if __name__ == "__main__":
+    main()

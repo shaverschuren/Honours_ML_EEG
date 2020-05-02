@@ -13,7 +13,7 @@
 # import math
 #
 # # path = 'data\\museMonitor_2020-03-17--11-06-08_3392211170804580360.csv'
-# path = 'data\\logs_2020-04-20_13-42-49\\fft.csv'
+# path = '..\\data\\logs_2020-05-02_01-34-29\\fft.csv'
 #
 # df = pandas.read_csv(path)
 #
@@ -43,6 +43,6 @@
 # ax4.plot(range(len(df)), df['theta_2'], 'g-', linewidth=1)
 #
 # plt.show()
-#
-#
-#
+
+
+

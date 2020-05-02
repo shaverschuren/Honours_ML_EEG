@@ -58,25 +58,28 @@ def theta_handler(unused_addr, args, ch1, ch2, ch3, ch4):
 #     # print("Jaw clench? : ", ch1)
 
 
-def osc_stream(ip_address="0.0.0.0",port=5000):
-    print('======== INIT OSC STREAM ========')
+def osc_stream(ip_address="0.0.0.0", port=5000):
+
+    global server
+
+    print('Init OSC stream ...')
     parser = argparse.ArgumentParser()
     parser.add_argument("--ip", default=ip_address)
     parser.add_argument("--port", default=port)
     args = parser.parse_args()
-    global dispatcher
-    dispatcher = dispatcher.Dispatcher()
-    dispatcher.map("/debug", print)
-    dispatcher.map("/muse/eeg", eeg_handler, "EEG")
-    # dispatcher.map("/muse/elements/jaw_clench", jaw_handler, "JAW")
-    dispatcher.map("/muse/elements/alpha_absolute", alpha_handler, "Alpha")
-    dispatcher.map("/muse/elements/beta_absolute", beta_handler, "Beta")
-    dispatcher.map("/muse/elements/gamma_absolute", gamma_handler, "Gamma")
-    dispatcher.map("/muse/elements/delta_absolute", delta_handler, "Delta")
-    dispatcher.map("/muse/elements/theta_absolute", theta_handler, "Theta")
 
-    server = osc_server.ThreadingOSCUDPServer((args.ip, args.port), dispatcher)
-    print('\nListening at ', ip_address, ' {', port, '}')
+    osc_dispatcher = dispatcher.Dispatcher()
+    # osc_dispatcher.map("/debug", print)
+    osc_dispatcher.map("/muse/eeg", eeg_handler, "EEG")
+    # osc_dispatcher.map("/muse/elements/jaw_clench", jaw_handler, "JAW")
+    osc_dispatcher.map("/muse/elements/alpha_absolute", alpha_handler, "Alpha")
+    osc_dispatcher.map("/muse/elements/beta_absolute", beta_handler, "Beta")
+    osc_dispatcher.map("/muse/elements/gamma_absolute", gamma_handler, "Gamma")
+    osc_dispatcher.map("/muse/elements/delta_absolute", delta_handler, "Delta")
+    osc_dispatcher.map("/muse/elements/theta_absolute", theta_handler, "Theta")
+
+    server = osc_server.ThreadingOSCUDPServer((args.ip, args.port), osc_dispatcher)
+    print('Listening at ', ip_address, ' {', port, '}')
     server.serve_forever()
 
 
@@ -167,8 +170,31 @@ def write_data(frame_type=''):
         raise ValueError('Wrong frame type ...')
 
 
+def store_results():
+    # Gets called upon when measurement ends
+    global raw_data
+    global fft_data
+
+    # Save final raw data
+    raw_data.to_csv(raw_path, mode='a', index=False, header=False)
+    raw_data = pd.DataFrame(columns=raw_columns)
+    print("Saved final RAW data to", raw_path)
+
+    # Save final FFT data
+    fft_data.to_csv(fft_path, mode='a', index=False, header=False)
+    fft_data = pd.DataFrame(columns=fft_columns)
+    print("Saved final FFT data to", fft_path)
+
+
+def stop_server():
+    global server, osc_thread
+
+    server.shutdown()
+    osc_thread.join()
+
+
 def animate(i):
-    start = datetime.datetime.now()
+    # start = datetime.datetime.now()
     plot_data = pd.concat([null_df, plot_raw_data], ignore_index=True)[-500:]
     xs = range(500)
     ys1 = plot_data['EEG_0']
@@ -195,8 +221,8 @@ def animate(i):
     ax4.set_xlim(0, 500)
     ax4.patch.set_facecolor('#000000')
     ax4.plot(xs, ys4, 'g-', linewidth=1, alpha=0.5)
-    stop = datetime.datetime.now()
-    print(stop-start)
+    # stop = datetime.datetime.now()
+    # print(stop-start)
     return [ax1, ax2, ax3, ax4]
 
 
@@ -207,6 +233,7 @@ def init_osc_stream(log_folder="data\\test_logs", animate_eeg=False):
     global null_df, plot_raw_data
     global eeg_data, alpha_data, beta_data, gamma_data, delta_data, theta_data
     global raw_record_nr, fft_record_nr
+    global osc_thread
     global fig, ax1, ax2, ax3, ax4
 
     raw_columns = ["TimeStamp", "EEG_0", "EEG_1", "EEG_2", "EEG_3"]
@@ -248,7 +275,11 @@ def init_osc_stream(log_folder="data\\test_logs", animate_eeg=False):
     ax4 = fig.add_subplot(4, 1, 4)
 
     if animate_eeg:
-        ani = animation.FuncAnimation(fig, animate, interval=50, blit=True)  # Don't use during actual data gathering !
+        ani = animation.FuncAnimation(fig, animate, interval=100, blit=True)  # Don't use during actual data gathering !
+
+        # mng = plt.get_current_fig_manager()
+        # mng.frame.Maximize(True)
+
         plt.show()
 
 
