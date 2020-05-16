@@ -5,8 +5,6 @@
 #
 # Author:   S.H.A. Verschuren
 # Date:     23-04-2020
-# ToDo: Implement counter
-# ToDo: evt. Implement distractions etc.
 
 import pygame
 import random
