@@ -1,11 +1,16 @@
-import os
-import csv
+# merge_data.py
+#
+# This script performs the post-processing and data merging for all subjects.
+#
+# Author:   S.H.A. Verschuren
+# Date:     14-5-2020
+
+from glob import glob
 import pandas
-import scipy.signal
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.lines import Line2D
 import datetime
-import math
 import seaborn as sns
 
 
@@ -27,7 +32,13 @@ def trim_fft_data():
     return i, fft_time
 
 
-def generate_perf_data(bin_size=30):
+def str2time(timestamp):
+    time = datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
+
+    return time
+
+
+def generate_timestamp_data():
     timestamp_list = []
     timestamp_list_wrong = []
 
@@ -38,39 +49,15 @@ def generate_perf_data(bin_size=30):
         else:
             timestamp_list_wrong.append(time_passed.seconds)
 
-    min_border = 0
-    max_border = bin_size
-
-    hist_list = []
-
-    while min_border < max(timestamp_list):
-        score = len([item for item in timestamp_list if min_border <= item < max_border])
-        min_border += bin_size
-        max_border += bin_size
-        hist_list.append(score)
-
-    min_hist = min(hist_list)
-    max_hist = max(hist_list)
-    score_list = []
-    for j in range(len(hist_list)):
-        score = (hist_list[j] - min_hist) / (max_hist - min_hist)
-        score_list.append(score)
-
-    return score_list
+    return timestamp_list
 
 
-def str2time(timestamp):
-    time = datetime.datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
+def merge_data(timestamp_list, bin_size):
 
-    return time
-
-
-def merge_data():
-
-    final_df = df_fft
+    global final_df
 
     score_list = []
-    score_list_interpol = []
+    score_list_norm = []
 
     for i in range(len(final_df)):
         timestamp = str2time(final_df['TimeStamp'][i+start_index])
@@ -80,64 +67,92 @@ def merge_data():
         passed_micros = passed_time.microseconds/1000000
         passed_time_float = passed_seconds + passed_micros
 
-        time_bin = int(passed_time_float//bin_size)
-        score = perf_list[time_bin]
+        min_border = passed_time_float - bin_size/2
+        max_border = passed_time_float + bin_size/2
 
-        score_list.append(score)
+        points_in_bin = len([item for item in timestamp_list if min_border <= item < max_border])
 
-        time_mod = passed_time_float % bin_size
-        linear_factor = 0.5 - time_mod/bin_size
+        score_list.append(points_in_bin)
 
-        if time_bin != len(perf_list)-1 and time_bin != 0:
-            if linear_factor >= 0:
-                score_list_interpol.append(linear_factor*perf_list[time_bin-1]+(1-linear_factor)*score)
-            else:
-                score_list_interpol.append(-linear_factor*perf_list[time_bin+1]+(1+linear_factor)*score)
-        else:
-            score_list_interpol.append(score)
+    min_hist = min(score_list)
+    max_hist = max(score_list)
 
-    conv_footprint = 7*bin_size
-    score_list_smoothed = np.convolve(score_list_interpol, np.ones((conv_footprint,))/conv_footprint, mode='same')
+    for j in range(len(score_list)):
+        score_norm = (score_list[j] - min_hist) / (max_hist - min_hist)
+        score_list_norm.append(score_norm)
 
-    final_df['Performance'] = score_list_smoothed
+    conv_footprint = 2 * bin_size
+    score_list_smoothed = np.convolve(score_list_norm, np.ones((conv_footprint,)) / conv_footprint, mode='same')
 
-    return final_df, score_list,score_list_interpol, score_list_smoothed
+    final_df['Performance_'+str(bin_size)] = score_list_smoothed
+
+    return score_list, score_list_norm, score_list_smoothed
 
 
-def plot_data():
+def plot_data(save_figs=False):
     fig, ax = plt.subplots(3, 1)
+    fig.subplots_adjust(top=0.8)
+    fig.suptitle(str(log_folder), size=8, y=0.99, x=0.16)
 
-    ax[0].bar(range(len(perf_list)), perf_list)
-    ax[1].plot(range(len(score_list)), score_list)
-    ax[1].plot(range(len(score_list_interpol)), score_list_interpol)
-    ax[1].plot(range(len(score_list_smoothed)), score_list_smoothed)
-    sns.kdeplot(score_list, ax=ax[2])
-    sns.kdeplot(score_list_interpol, ax=ax[2])
-    sns.kdeplot(score_list_smoothed, ax=ax[2])
-    # plt.hist(timestamp_list, bins=timestamp_list[-1]//30)
-    # sns.kdeplot(timestamp_list)
+    ax[0].set_title('Score over Time (binsize = 20s)')
+    ax[0].plot(range(len(score_list_norm_20)), score_list_norm_20, color='royalblue')
+    ax[0].plot(range(len(score_list_smoothed_20)), score_list_smoothed_20, color='navy')
+    ax[0].legend(['Raw', 'Smoothed'], fontsize=5, loc='upper right')
+
+    ax[1].set_title('Score over Time (binsize = 40s)')
+    ax[1].plot(range(len(score_list_norm_40)), score_list_norm_40, color='lightcoral')
+    ax[1].plot(range(len(score_list_smoothed_40)), score_list_smoothed_40, color='red')
+    ax[1].legend(['Raw', 'Smoothed'], fontsize=5, loc='upper right')
+
+    ax[2].set_title('Score - Density Plot')
+    sns.kdeplot(score_list_norm_20, ax=ax[2], color="blue", linestyle="--")
+    sns.kdeplot(score_list_smoothed_20, ax=ax[2], color="blue")
+    sns.kdeplot(score_list_norm_40, ax=ax[2], color="red", linestyle="--")
+    sns.kdeplot(score_list_smoothed_40, ax=ax[2], color="red")
+
+    custom_lines = [Line2D([0], [0], color="blue", linestyle="--"),
+                    Line2D([0], [0], color="blue"),
+                    Line2D([0], [0], color="red", linestyle="--"),
+                    Line2D([0], [0], color="red")]
+    ax[2].legend(custom_lines, ['Binsize = 20 (raw)', 'Binsize = 20 (smoothed)', 'Binsize = 40 (raw)', 'Binsize = 20 (smoothed)'],
+                 fontsize=5, loc='upper right')
+
+    plt.tight_layout()
     plt.show()
+
+    if save_figs:
+        fig.savefig(log_folder+'performance.png')
 
 
 if __name__ == "__main__":
-    bin_size = 30
-    log_folder = '..\\data\\logs_2020-05-12_12-52-22\\'
 
-    fft_path = log_folder + 'fft.csv'
-    game_path = log_folder + 'game.csv'
+    subject_list = glob("..\\data\\logs_*\\")
 
-    df_fft = pandas.read_csv(fft_path)
-    df_game = pandas.read_csv(game_path)
+    for log_folder in subject_list:
 
-    start_time = str2time(df_game['TimeStamp'][0])
-    stop_time = str2time(df_game['TimeStamp'][(len(df_game))-1])
+        fft_path = log_folder + 'fft.csv'
+        game_path = log_folder + 'game.csv'
 
-    start_index, fft_time = trim_fft_data()
+        df_fft = pandas.read_csv(fft_path)
+        df_game = pandas.read_csv(game_path)
 
-    perf_list = generate_perf_data(bin_size)
+        start_time = str2time(df_game['TimeStamp'][0])
+        stop_time = str2time(df_game['TimeStamp'][(len(df_game))-1])
 
-    merged_df, score_list, score_list_interpol, score_list_smoothed = merge_data()
+        start_index, fft_time = trim_fft_data()
 
-    merged_df.to_csv(log_folder+"merged.csv")
+        final_df = df_fft
 
-    plot_data()
+        timestamp_list = generate_timestamp_data()
+
+        for bin_size in [20, 40]:
+            if bin_size == 20:
+                score_list_20, score_list_norm_20, score_list_smoothed_20 = merge_data(timestamp_list, bin_size)
+            elif bin_size == 40:
+                score_list_40, score_list_norm_40, score_list_smoothed_40 = merge_data(timestamp_list, bin_size)
+            else:
+                raise ValueError('Wrong bin size .. ')
+
+        plot_data(save_figs=True)
+
+        final_df.to_csv(log_folder+"merged.csv")
