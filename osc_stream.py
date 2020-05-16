@@ -118,7 +118,7 @@ def write_data(frame_type=''):
 
     global raw_record_nr
     global fft_record_nr
-    # TODO: Fix time-stamping... (datetime.datetime.now() ?)
+
     append_row = [datetime.datetime.now()]
 
     if frame_type == 'raw':
