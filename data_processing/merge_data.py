@@ -155,4 +155,4 @@ if __name__ == "__main__":
 
         plot_data(save_figs=True)
 
-        final_df.to_csv(log_folder+"merged.csv")
+        final_df.to_csv(log_folder+"merged.csv", index=False)
