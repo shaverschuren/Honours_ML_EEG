@@ -108,12 +108,12 @@ if __name__ == "__main__":
         tensorboard = TensorBoard(log_dir)
         checkpoint = ModelCheckpoint(os.path.join(log_dir, weights_filepath), monitor='val_loss',
                                      verbose=1, save_best_only=True, mode='min')
-        earlystop_callback = EarlyStopping(monitor='val_loss', min_delta=0.00001, patience=20)
+        earlystop_callback = EarlyStopping(monitor='val_loss', min_delta=0.000001, patience=100)
 
         callbacks_list = [checkpoint, tensorboard, earlystop_callback]
 
         # train the model
-        model.fit(X_train, y_train, batch_size=16, epochs=20000, verbose=2, validation_data=(X_val, y_val), callbacks=callbacks_list)
+        model.fit(X_train, y_train, batch_size=16, epochs=50000, verbose=2, validation_data=(X_val, y_val), callbacks=callbacks_list)
 
         score = model.evaluate(X_test, y_test, verbose=0)
         print("\nMSE: ", score[0])
