@@ -108,7 +108,7 @@ if __name__ == "__main__":
         tensorboard = TensorBoard(log_dir)
         checkpoint = ModelCheckpoint(os.path.join(log_dir, weights_filepath), monitor='val_loss',
                                      verbose=1, save_best_only=True, mode='min')
-        earlystop_callback = EarlyStopping(monitor='val_loss', min_delta=0.0005, patience=20)
+        earlystop_callback = EarlyStopping(monitor='val_loss', min_delta=0.00001, patience=20)
 
         callbacks_list = [checkpoint, tensorboard, earlystop_callback]
 
