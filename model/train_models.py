@@ -52,18 +52,38 @@ def load_dataset(data_path="..\\data\\dataset_avg.csv", train_test_ratio=5):
 
 
 def get_model():
+    # model = Sequential()
+    # model.add(InputLayer(input_shape=(20,)))
+    # model.add(Dense(40, activation='relu'))
+    # model.add(Dropout(0.05))
+    # model.add(Dense(80, activation='relu'))
+    # model.add(Dropout(0.05))
+    # model.add(Dense(60, activation='relu'))
+    # model.add(Dropout(0.05))
+    # model.add(Dense(60, activation='relu'))
+    # model.add(Dropout(0.05))
+    # model.add(Dense(20, activation='relu'))
+    # model.add(Dropout(0.05))
+    # model.add(Dense(1, activation='linear'))
+    # model.add(Dense(1, activation='sigmoid'))
+
     model = Sequential()
     model.add(InputLayer(input_shape=(20,)))
-    model.add(Dense(40, activation='relu'))
+    model.add(Dense(25, activation='relu'))
     model.add(Dropout(0.05))
-    model.add(Dense(80, activation='relu'))
+    model.add(Dense(50, activation='relu'))
     model.add(Dropout(0.05))
-    model.add(Dense(60, activation='relu'))
+    model.add(Dense(50, activation='relu'))
     model.add(Dropout(0.05))
-    model.add(Dense(20, activation='relu'))
+    model.add(Dense(75, activation='relu'))
+    model.add(Dropout(0.05))
+    model.add(Dense(50, activation='relu'))
+    model.add(Dropout(0.05))
+    model.add(Dense(25, activation='relu'))
+    model.add(Dropout(0.05))
+    model.add(Dense(10, activation='relu'))
     model.add(Dropout(0.05))
     model.add(Dense(1, activation='linear'))
-    # model.add(Dense(1, activation='sigmoid'))
 
     return model
 

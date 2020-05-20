@@ -11,14 +11,34 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import seaborn as sns
 from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import InputLayer, Dense, Dropout
 from sklearn.metrics import mean_absolute_error
 import os
 import train_models
 
 X_train, X_val, y_train, y_val, X_test, y_test = train_models.load_dataset()
 
-model = train_models.get_model()
-model.load_weights("logs\\merge_models\\merge_model_0\\merge_model_0_weights.hdf5")
+# model = train_models.get_model()
+
+model = Sequential()
+model.add(InputLayer(input_shape=(20,)))
+model.add(Dense(25, activation='relu'))
+model.add(Dropout(0.05))
+model.add(Dense(50, activation='relu'))
+model.add(Dropout(0.05))
+model.add(Dense(50, activation='relu'))
+model.add(Dropout(0.05))
+model.add(Dense(75, activation='relu'))
+model.add(Dropout(0.05))
+model.add(Dense(50, activation='relu'))
+model.add(Dropout(0.05))
+model.add(Dense(25, activation='relu'))
+model.add(Dropout(0.05))
+model.add(Dense(10, activation='relu'))
+model.add(Dropout(0.05))
+model.add(Dense(1, activation='linear'))
+
+model.load_weights("logs\\tryout_logs\\model_20000iter_adadelta_float_y_nosigm\\20200520-015141\\model_20000iter_adadelta_float_y_nosigm_weights.hdf5")
 model.compile(loss='MSE', optimizer='adadelta', metrics=['MAE'])
 
 score = model.evaluate(X_test, y_test, verbose=0)
