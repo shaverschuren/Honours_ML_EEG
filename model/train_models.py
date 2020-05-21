@@ -14,7 +14,7 @@ from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStoppi
 import os
 
 
-def load_dataset(data_path="..\\data\\dataset_avg.csv", train_test_ratio=5):
+def load_dataset(data_path="..\\data\\dataset.csv", train_test_ratio=5):
     dataset_full = pd.read_csv(data_path)
 
     dataset_train = dataset_full[len(dataset_full)//train_test_ratio:]
@@ -23,15 +23,15 @@ def load_dataset(data_path="..\\data\\dataset_avg.csv", train_test_ratio=5):
     train_data = dataset_train.to_numpy()
     test_data = dataset_test.to_numpy()
 
-    # X_train = train_data[:, range(1, 21)]
-    # y_train = train_data[:, 22]
-    # X_test = test_data[:, range(1, 21)]
-    # y_test = test_data[:, 22]
+    X_train = train_data[:, range(1, 21)]
+    y_train = train_data[:, 22]
+    X_test = test_data[:, range(1, 21)]
+    y_test = test_data[:, 22]
 
-    X_train = train_data[:, range(0, 20)]
-    y_train = train_data[:, 21]
-    X_test = test_data[:, range(0, 20)]
-    y_test = test_data[:, 21]
+    # X_train = train_data[:, range(0, 20)]
+    # y_train = train_data[:, 21]
+    # X_test = test_data[:, range(0, 20)]
+    # y_test = test_data[:, 21]
 
     # derive a validation set from the training set
     # the original training set is split into
@@ -65,7 +65,7 @@ def get_model():
     # model.add(Dense(20, activation='relu'))
     # model.add(Dropout(0.05))
     # model.add(Dense(1, activation='linear'))
-    # model.add(Dense(1, activation='sigmoid'))
+    # # model.add(Dense(1, activation='sigmoid'))
 
     model = Sequential()
     model.add(InputLayer(input_shape=(20,)))
@@ -133,7 +133,7 @@ if __name__ == "__main__":
         callbacks_list = [checkpoint, tensorboard, earlystop_callback]
 
         # train the model
-        model.fit(X_train, y_train, batch_size=16, epochs=50000, verbose=2, validation_data=(X_val, y_val), callbacks=callbacks_list)
+        model.fit(X_train, y_train, batch_size=64, epochs=50000, verbose=2, validation_data=(X_val, y_val), callbacks=callbacks_list)
 
         score = model.evaluate(X_test, y_test, verbose=0)
         print("\nMSE: ", score[0])
@@ -142,4 +142,3 @@ if __name__ == "__main__":
     print("\n-- END training process --")
     print("\nLogs may be found in", "..\\"+log_dir[:len(log_dir)]+"*")
     print("Bye!")
-
