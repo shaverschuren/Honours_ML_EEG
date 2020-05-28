@@ -125,7 +125,7 @@ def plot_data(save_figs=False):
 
 
 if __name__ == "__main__":
-
+    # Obtain subject list by defining log folder
     subject_list = glob("..\\data\\logs_*\\")
 
     for log_folder in subject_list:
@@ -136,15 +136,18 @@ if __name__ == "__main__":
         df_fft = pandas.read_csv(fft_path)
         df_game = pandas.read_csv(game_path)
 
+        # Get timestamps for beginning and end of game stream
         start_time = str2time(df_game['TimeStamp'][0])
         stop_time = str2time(df_game['TimeStamp'][(len(df_game))-1])
 
+        # Trim EEG dataset to fit game-stream timeline
         start_index, fft_time = trim_fft_data()
 
         final_df = df_fft
 
         timestamp_list = generate_timestamp_data()
 
+        # Run the performance analysis for binsizes 20 and 40.
         for bin_size in [20, 40]:
             if bin_size == 20:
                 score_list_20, score_list_norm_20, score_list_smoothed_20 = merge_data(timestamp_list, bin_size)
@@ -153,6 +156,8 @@ if __name__ == "__main__":
             else:
                 raise ValueError('Wrong bin size .. ')
 
+        # Plot the data for quality check
         plot_data(save_figs=True)
 
+        # Store dataset
         final_df.to_csv(log_folder+"merged.csv", index=False)

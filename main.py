@@ -43,16 +43,6 @@ def main():
     # GUI for level selection ...
     level_selection = selection_gui.main()
 
-    # # Check EEG signal ...
-    # eeg_check_thread = threading.Thread(target=osc_stream.init_osc_stream, args=("data\\test_logs", True))
-    # eeg_check_thread.start()
-    #
-    # while eeg_check_thread.is_alive():
-    #     time.sleep(2)
-
-    # osc_stream.stop_server()
-
-    # eeg_thread = threading.Thread(target=osc_stream.init_osc_stream, args=(log_folder, False))
     game_thread = threading.Thread(target=game_gui.main_gui, args=(log_folder, int(level_selection), False))
     game_thread.start()
 

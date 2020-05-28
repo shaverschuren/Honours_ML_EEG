@@ -98,7 +98,7 @@ def plot_data(plot_data, save_figs=False):
 
 
 if __name__ == "__main__":
-
+    # Get subject list by defining log folder
     subject_list = glob("..\\data\\logs_*\\")
 
     for log_folder in subject_list:
@@ -106,9 +106,8 @@ if __name__ == "__main__":
         data_path = log_folder + 'merged.csv'
         df = pandas.read_csv(data_path)
 
-        # AF_alpha, AF_beta, AF_gamma, AF_delta, AF_theta, \
-        # TP_alpha, TP_beta, TP_gamma, TP_delta, TP_theta = generate_eeg_plot(df)
-
+        # Get plot-able data
         plot_df = generate_eeg_plot(df)
 
+        # Plot data
         plot_data(plot_df, True)

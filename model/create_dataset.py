@@ -11,11 +11,12 @@ from glob import glob
 
 
 if __name__ == "__main__":
-
+    # Obtain subject list
     subject_list = glob("..\\data\\logs_*\\")
 
+    # Init dataframes
     merged_df = pandas.DataFrame()
-    merged_df_avg = pandas.DataFrame()
+    merged_df_avg = pandas.DataFrame()  # Dataframe, averaged over 1 second time periods --> NOT USED
 
     for subject in subject_list:
         data_path = subject + "merged.csv"
@@ -34,6 +35,7 @@ if __name__ == "__main__":
             merged_df = merged_df.append(subject_df, ignore_index=True)
             merged_df_avg = merged_df_avg.append(subject_df_avg, ignore_index=True)
 
+    # Shuffle rows
     merged_df = merged_df.sample(frac=1)
     merged_df_avg = merged_df_avg.sample(frac=1)
 

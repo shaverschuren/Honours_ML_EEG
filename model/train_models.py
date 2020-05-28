@@ -17,12 +17,14 @@ import os
 def load_dataset(data_path="..\\data\\dataset.csv", train_test_ratio=5):
     dataset_full = pd.read_csv(data_path)
 
+    # Split off test-set
     dataset_train = dataset_full[len(dataset_full)//train_test_ratio:]
     dataset_test = dataset_full[:len(dataset_full)//train_test_ratio]
 
     train_data = dataset_train.to_numpy()
     test_data = dataset_test.to_numpy()
 
+    # Select input and target data
     X_train = train_data[:, range(1, 21)]
     y_train = train_data[:, 22]
     X_test = test_data[:, range(1, 21)]
@@ -35,7 +37,7 @@ def load_dataset(data_path="..\\data\\dataset.csv", train_test_ratio=5):
 
     # derive a validation set from the training set
     # the original training set is split into
-    # new training set (90%) and a validation set (10%)
+    # new training set (80%) and a validation set (20%)
     X_train, X_val = train_test_split(X_train, test_size=0.20, random_state=101)
     y_train, y_val = train_test_split(y_train, test_size=0.20, random_state=101)
 
@@ -52,21 +54,6 @@ def load_dataset(data_path="..\\data\\dataset.csv", train_test_ratio=5):
 
 
 def get_model():
-    # model = Sequential()
-    # model.add(InputLayer(input_shape=(20,)))
-    # model.add(Dense(40, activation='relu'))
-    # model.add(Dropout(0.05))
-    # model.add(Dense(80, activation='relu'))
-    # model.add(Dropout(0.05))
-    # model.add(Dense(60, activation='relu'))
-    # model.add(Dropout(0.05))
-    # model.add(Dense(60, activation='relu'))
-    # model.add(Dropout(0.05))
-    # model.add(Dense(20, activation='relu'))
-    # model.add(Dropout(0.05))
-    # model.add(Dense(1, activation='linear'))
-    # # model.add(Dense(1, activation='sigmoid'))
-
     model = Sequential()
     model.add(InputLayer(input_shape=(20,)))
     model.add(Dense(25, activation='relu'))
@@ -106,7 +93,7 @@ if __name__ == "__main__":
         # compile the model
         model.compile(loss='MSE', optimizer='adadelta', metrics=['MAE'])
 
-        # use this variable to name your model
+        # use this variable to name the model
         model_name = "merge_model_" + str(model_nr)
 
         log_dir = os.path.join("logs", "merge_models", model_name)

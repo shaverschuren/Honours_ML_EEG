@@ -1,3 +1,5 @@
+# This small script is used to fix the corrupted files for subject 2020-05-12_13-13-26
+
 import pandas
 
 data_path = '..\\data\\excluded\\logs_2020-05-12_13-13-26\\game.csv'
