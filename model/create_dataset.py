@@ -15,6 +15,7 @@ if __name__ == "__main__":
     subject_list = glob("..\\data\\logs_*\\")
 
     merged_df = pandas.DataFrame()
+    merged_df_avg = pandas.DataFrame()
 
     for subject in subject_list:
         data_path = subject + "merged.csv"
